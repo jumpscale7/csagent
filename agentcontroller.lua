@@ -2,11 +2,12 @@
 -- A proxy for a remote Agent Controller instance.
 --
 
-require('json.rpc')
-require('socket')
+json = require('json')
+json.rpc = require('json.rpc')
+socket = require('socket')
 uuid = require('uuid'); uuid.seed() -- Must be seeded somewhere after require('socket')
 
-module('agentcontroller', package.seeall)
+M = {}
 
 --
 -- Constructs a client for an Agent Controller and returns it.
@@ -23,7 +24,7 @@ module('agentcontroller', package.seeall)
 -- Returns:
 --   A proxy client that Agent Controller RPC methods can be called on
 --
-function connect_to(url, roles, gid, nid, password, username, organization)
+function M.connect_to(url, roles, gid, nid, password, username, organization)
 
     local url = url or 'http://localhost:4444'
 
@@ -54,12 +55,12 @@ function connect_to(url, roles, gid, nid, password, username, organization)
     end
 
    local session_id = init_session()
-   return AgentController:new(url, session_id)
+   return M.AgentController:new(url, session_id)
 end
 
-AgentController = {}
+M.AgentController = {}
 
-function AgentController:__index(method_name)
+function M.AgentController:__index(method_name)
     return function(...)
         local params = ...
         params.sessionid = self.__session_id
@@ -67,8 +68,10 @@ function AgentController:__index(method_name)
     end
 end
 
-function AgentController:new(url, session_id)
+function M.AgentController:new(url, session_id)
     local object = {__url = url, __session_id = session_id}
-    setmetatable(object, AgentController)
+    setmetatable(object, M.AgentController)
     return object
 end
+
+return M
