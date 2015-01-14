@@ -3,6 +3,8 @@
 --
 
 require('json.rpc')
+require('socket')
+uuid = require('uuid'); uuid.seed() -- Must be seeded somewhere after require('socket')
 
 module('agentcontroller', package.seeall)
 
@@ -39,10 +41,11 @@ function connect_to(url, roles, gid, nid, password, username, organization)
             user = username,
             passwd = password,
             organization = organization,
-            id = '83-8e984545-56a15' .. tostring(os.time()),  -- TODO: Look up how this is generated and do it right
+            id = uuid(),
         }
 
-        local result, err = json.rpc.call(url, 'core.registersession', {sessiondata = session_data, ssl=false, session=false})
+        local result, err =
+            json.rpc.call(url, 'core.registersession', {sessiondata = session_data, ssl=false, session=false})
         if err then
             error(err)
         else
