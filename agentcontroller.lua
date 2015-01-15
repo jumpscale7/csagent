@@ -6,6 +6,7 @@ json = require('json')
 json.rpc = require('json.rpc')
 socket = require('socket')
 uuid = require('uuid'); uuid.seed() -- Must be seeded somewhere after require('socket')
+netinfo = require('netinfo')
 
 M = {}
 
@@ -35,10 +36,7 @@ function M.connect_to(url, roles, gid, nid, password, username, organization)
             nid = nid,
             encrkey = '',
             start = os.time(),
-            netinfo = {     -- TODO: Introspect this dynamically
-                {ip = '127.0.0.1', cidr = '8', mac = '00:00:00:00:00:00', name = 'lo'},
-                {ip = '10.0.2.15', cidr = '24', mac = '08:00:27:c5:03:64', name = 'eth0'},
-            },
+            netinfo = netinfo(),
             user = username,
             passwd = password,
             organization = organization,

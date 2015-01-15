@@ -1,2 +1,3 @@
 json4lua >= 0.9.52
 uuid >= 0.2
+lunix
