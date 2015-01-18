@@ -60,7 +60,7 @@ M.AgentController = {}
 
 function M.AgentController:__index(method_name)
     return function(...)
-        local params = ...
+        local params = ... or {}
         params.sessionid = self.__session_id
         return json.rpc.call(self.__url, 'agent.' .. method_name, params)
     end
