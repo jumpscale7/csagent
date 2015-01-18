@@ -3,7 +3,7 @@
 --
 
 json = require('json')
-json.rpc = require('json.rpc')
+require('json.rpc')
 socket = require('socket')
 uuid = require('uuid'); uuid.seed() -- Must be seeded somewhere after require('socket')
 netinfo = require('netinfo')
