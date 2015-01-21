@@ -4,4 +4,4 @@ lunix
 basexx
 luafilesystem
 luarocks
-luaposix
+penlight

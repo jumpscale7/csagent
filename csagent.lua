@@ -71,7 +71,19 @@ local function download_jumpscripts(agent_controller_session)
     return jumpscripts_path
 end
 
-local function poll_for_work(agent_controller_session)
+--
+-- Polls on work from the Agent Controller ad infinitum.
+--
+-- Args:
+--  agent_controller_session: an agentcontroller.AgentController object
+--  jumpscripts_path: a str path of where the Lua Jumpscripts are stored on the local filesystem
+--
+local function poll_for_work(agent_controller_session, jumpscripts_path)
+
+    local internal_commands = {
+        stop = function() os.exit(0) end,
+        reloadjumpscripts = function() return download_jumpscripts(agent_controller_session) end,
+    }
 
     while true do
 
@@ -80,7 +92,7 @@ local function poll_for_work(agent_controller_session)
 
         if job_description then     -- Why does the client unblock with a nil response? TCP timed out?
 
-            local job = jobs.interpret(job_description)
+            local job = jobs.interpret(job_description, internal_commands, jumpscripts_path)
 
             local execution_success, execution_result = pcall(job)
 
@@ -131,7 +143,7 @@ function main()
     log('Jumpscripts downloaded to ' .. jumpscripts_path)
 
     log 'Entering work polling loop'
-    poll_for_work(ac_session)
+    poll_for_work(ac_session, jumpscripts_path)
 
     log 'Bye!'
 end
@@ -151,4 +163,3 @@ end
 
 -- Execute robust_main() as the application entry point
 robust_main()
-
