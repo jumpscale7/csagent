@@ -94,7 +94,7 @@ local function poll_for_work(agent_controller_session, jumpscripts_path)
 
             local job = jobs.interpret(job_description, internal_commands, jumpscripts_path)
 
-            local execution_success, execution_result = pcall(job)
+            local execution_success, execution_result = xpcall(job, debug.traceback)
 
             if execution_success then
                 -- Execution OK
