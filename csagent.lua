@@ -2,7 +2,10 @@
 local socket = require 'socket'
 local lfs = require 'lfs'
 local tar = require 'luarocks.tools.tar'
-basexx = require 'basexx'
+local basexx = require 'basexx'
+local jobs = require 'jobs'
+local log = require 'log'
+local utils = require 'utils'
 
 -- CS Agent Configuration parameters
 local CONFIG = {
@@ -11,58 +14,47 @@ local CONFIG = {
     MACHINE_GUID = '080027534560183b86',     -- TODO: Needs to be dynamically determined
     USERNAME = 'root',
     PASSWORD = 'passwd',
-    ORGANIZATION = 'myorg',
+    ORGANIZATION = 'jumpscale',
     ROLES = {'csagent'},
     GID = 0,
     NID = 5,
     WORKING_DIRECTORY = '/tmp/' .. 'csagent-' .. tostring(os.time()),
 }
 
-local function log(...)
-    print(...)
-end
-
 local function application_init()
-
-    log 'Initiating application logic'
 
     -- Create working directory
     lfs.mkdir(CONFIG.WORKING_DIRECTORY)
-    log('Working directory is ' .. CONFIG.WORKING_DIRECTORY)
+    log('Working directory is ' .. CONFIG.WORKING_DIRECTORY, log.DEBUG)
 
-    log '---------------------'
 end
 
 --
 -- Registers self on the Agent Controller.
 --
--- Crashes on communication error.
---
 -- Returns:
 --  A table containing the node definition as acknowledged by the Agent Controller.
 --
+-- Raises an error on communication error.
+--
 local function register_node(agent_controller_session)
-    local result, err = agent_controller_session.registerNode{hostname = CONFIG.HOSTNAME, machineguid = CONFIG.MACHINE_GUID }
-    if err then error(err) end
-    log 'Sssion registered on AgentController successfully'
+    local result = agent_controller_session.registerNode{hostname = CONFIG.HOSTNAME, machineguid = CONFIG.MACHINE_GUID}
     return result.node
 end
 
 --
 -- Downloads the available jumpscripts from the AgentController to the local filesystem.
 --
--- Returns the path where the jumpscripts are downloaded to.
+-- Returns:
+--  The path where the jumpscripts are downloaded to
 --
--- Crashes on communication error.
+-- Raises an error on communication errors.
 --
 local function download_jumpscripts(agent_controller_session)
 
-    log 'Downloading the jumpscripts from AgentController...'
+    local jumpscripts_tar_b64 = agent_controller_session.getJumpscripts{bz2_compressed=false, types={'luajumpscripts'}}  -- TAR content in Base64
 
-    local jumpscripts_tar_b64, err = agent_controller_session.getAllJumpscripts{bz2_compressed=false}  -- TAR content in Base64
-    if err then error(err) end
-
-    log('Received ' .. tostring(#jumpscripts_tar_b64) .. ' bytes of jumpscript bae64 tar goodness')
+    log('Received ' .. tostring(#jumpscripts_tar_b64) .. ' bytes of jumpscript bae64 tar goodness', log.DEBUG)
 
     local jumpscripts_tar = basexx.from_base64(jumpscripts_tar_b64)
 
@@ -75,27 +67,88 @@ local function download_jumpscripts(agent_controller_session)
 
     local jumpscripts_path = CONFIG.WORKING_DIRECTORY .. '/jumpscripts/'
     tar.untar(jumpscripts_tar_path, jumpscripts_path)
-    log('The jumpscripts are available locally at ' .. jumpscripts_path)
 
     return jumpscripts_path
 end
 
--- Main Application logic
+local function poll_for_work(agent_controller_session)
 
-local agentcontroller = require('agentcontroller')
-local ac_session = agentcontroller.connect_to(
-    CONFIG.AGENT_CONTROLLER_JSONRPC_URL,
-    CONFIG.ROLES,
-    CONFIG.GID,
-    CONFIG.NID,
-    CONFIG.PASSWORD,
-    CONFIG.USERNAME,
-    CONFIG.ORGANIZATION
-)
+    while true do
 
-application_init()
-register_node(ac_session)
-download_jumpscripts(ac_session)
-log 'Bye!'
+        log 'Polling for work..'
+        local job_description = agent_controller_session.getWork()
 
--- TODO: Rest of the application logic
+        if job_description then     -- Why does the client unblock with a nil response? TCP timed out?
+
+            local job = jobs.interpret(job_description)
+
+            local execution_success, execution_result = pcall(job)
+
+            if execution_success then
+                -- Execution OK
+                job_description.state = 'OK'
+            else
+                -- Execution failed
+                job_description.state = 'ERROR'
+            end
+            job_description.result = execution_result   -- Success result or error message
+
+            -- Execute the work
+
+            agent_controller_session.notifyWorkCompleted{job = job_description}
+        end
+    end
+end
+
+--
+-- The main application logic.
+--
+-- Raises an error on communication error.
+--
+function main()
+
+    local agentcontroller = require('agentcontroller')
+
+    log 'Initiating a communication session with Agent Controller'
+    local ac_session = agentcontroller.connect_to(
+        CONFIG.AGENT_CONTROLLER_JSONRPC_URL,
+        CONFIG.ROLES,
+        CONFIG.GID,
+        CONFIG.NID,
+        CONFIG.PASSWORD,
+        CONFIG.USERNAME,
+        CONFIG.ORGANIZATION
+    )
+
+    log 'Initiating application logic'
+    application_init()
+
+    register_node(ac_session)
+    log 'Sssion registered on AgentController successfully'
+
+    log 'Downloading the jumpscripts from AgentController...'
+    local jumpscripts_path = download_jumpscripts(ac_session)
+    log('Jumpscripts downloaded to ' .. jumpscripts_path)
+
+    log 'Entering work polling loop'
+    poll_for_work(ac_session)
+
+    log 'Bye!'
+end
+
+local function robust_main()
+
+    local function on_error(err)
+        log(err .. ' Resetting the application in 5 seconds...', FATAL)
+        utils.sleep(5)
+        print '--------------------------------------------------------------------'
+        return robust_main()
+    end
+
+    local success, err = pcall(main)
+    if not success then return on_error(err) end
+end
+
+-- Execute robust_main() as the application entry point
+robust_main()
+

@@ -2,13 +2,13 @@
 -- A proxy for a remote Agent Controller instance.
 --
 
-json = require('json')
-require('json.rpc')
-socket = require('socket')
-uuid = require('uuid'); uuid.seed() -- Must be seeded somewhere after require('socket')
-netinfo = require('netinfo')
+local json = require('json')
+require 'json.rpc'
+local socket = require 'socket'
+local uuid = require 'uuid'; uuid.seed() -- Must be seeded somewhere after require('socket')
+local netinfo = require('netinfo')
 
-M = {}
+local agentcontroller = {}
 
 --
 -- Constructs a client for an Agent Controller and returns it.
@@ -25,7 +25,9 @@ M = {}
 -- Returns:
 --   A proxy client that Agent Controller RPC methods can be called on
 --
-function M.connect_to(url, roles, gid, nid, password, username, organization)
+-- Raises an error on communication error.
+--
+function agentcontroller.connect_to(url, roles, gid, nid, password, username, organization)
 
     local url = url or 'http://localhost:4444'
 
@@ -44,32 +46,30 @@ function M.connect_to(url, roles, gid, nid, password, username, organization)
         }
 
         local result, err =
-            json.rpc.call(url, 'core.registersession', {sessiondata = session_data, ssl=false, session=false})
-        if err then
-            error(err)
-        else
-            return session_data.id
-        end
+        json.rpc.call(url, 'core.registersession', {sessiondata = session_data, ssl=false, session=false})
+
+        if err then error(err) else return session_data.id end
     end
 
-   local session_id = init_session()
-   return M.AgentController:new(url, session_id)
+    local session_id = init_session()
+    return agentcontroller.AgentController:new(url, session_id)
 end
 
-M.AgentController = {}
+agentcontroller.AgentController = {}
 
-function M.AgentController:__index(method_name)
+function agentcontroller.AgentController:__index(method_name)
     return function(...)
         local params = ... or {}
         params.sessionid = self.__session_id
-        return json.rpc.call(self.__url, 'agent.' .. method_name, params)
+        local result, err = json.rpc.call(self.__url, 'agent.' .. method_name, params)
+        if err then error(err) else return result end
     end
 end
 
-function M.AgentController:new(url, session_id)
+function agentcontroller.AgentController:new(url, session_id)
     local object = {__url = url, __session_id = session_id}
-    setmetatable(object, M.AgentController)
+    setmetatable(object, agentcontroller.AgentController)
     return object
 end
 
-return M
+return agentcontroller
