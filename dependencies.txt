@@ -1,5 +1,5 @@
-json4lua >= 0.9.53
-uuid >= 0.2
+json4lua
+uuid
 lunix
 basexx
 luafilesystem
