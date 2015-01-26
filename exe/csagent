@@ -1,6 +1,6 @@
 #! /usr/bin/sh
 
 LUA_TREE='/usr/share/csagent'
-export LUA_PATH="${LUA_TREE}/share/lua/5.1/?.lua;$LUA_TREE/share/lua/5.1/?/init.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;/usr/lib/lua/5.1/?.lua;/usr/lib/lua/5.1/?/init.lua;./?.lua;/home/amr/.luarocks/share/lua/5.1/?.lua;/home/amr/.luarocks/share/lua/5.1/?/init.lua"
+export LUA_PATH="${LUA_TREE}/share/lua/5.1/?.lua;$LUA_TREE/share/lua/5.1/?/init.lua;/usr/share/lua/5.1/?.lua;/usr/share/lua/5.1/?/init.lua;/usr/lib/lua/5.1/?.lua;/usr/lib/lua/5.1/?/init.lua;./?.lua"
 
 lua "$LUA_TREE/csagent.lua"
