@@ -1,6 +1,8 @@
 # CSAgent #
 A JumpScale Agent for the JumpScale7 platform, written in Lua.
 
+More information about the concepts behind the project is available on the [project wiki](https://github.com/Jumpscale/csagent/wiki).
+
 ## Installation and running ##
 Manageable via the the jpackage system:
 ```bash
