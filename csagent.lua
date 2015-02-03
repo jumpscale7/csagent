@@ -54,7 +54,7 @@ local function download_jumpscripts(agent_controller_session)
 
     local jumpscripts_tar_b64 = agent_controller_session.getJumpscripts{bz2_compressed=false, types={'luajumpscripts'}}  -- TAR content in Base64
 
-    log('Received ' .. tostring(#jumpscripts_tar_b64) .. ' bytes of jumpscript bae64 tar goodness', log.DEBUG)
+    log('Received ' .. tostring(#jumpscripts_tar_b64) .. ' bytes of jumpscript base64 tar goodness', log.DEBUG)
 
     local jumpscripts_tar = basexx.from_base64(jumpscripts_tar_b64)
 
@@ -136,7 +136,7 @@ function main()
     application_init()
 
     register_node(ac_session)
-    log 'Sssion registered on AgentController successfully'
+    log 'Session registered on AgentController successfully'
 
     log 'Downloading the jumpscripts from AgentController...'
     local jumpscripts_path = download_jumpscripts(ac_session)
