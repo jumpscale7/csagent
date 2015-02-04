@@ -10,15 +10,15 @@ local args = require 'args'
 
 -- CS Agent Configuration parameters
 local CONFIG = {
-    AGENT_CONTROLLER_JSONRPC_URL = 'http://localhost:4444',
-    HOSTNAME = socket.dns.gethostname(),
-    MACHINE_GUID = '080027534560183b86',     -- TODO: Needs to be dynamically determined
-    USERNAME = 'root',
-    PASSWORD = 'passwd',
-    ORGANIZATION = 'jumpscale',
-    ROLES = {'csagent'},
-    GID = nil,          -- To be filled in later
-    WORKING_DIRECTORY = '/tmp/' .. 'csagent-' .. tostring(os.time()),
+  AGENT_CONTROLLER_JSONRPC_URL = 'http://localhost:4444',
+  HOSTNAME = socket.dns.gethostname(),
+  MACHINE_GUID = '080027534560183b86',     -- TODO: Needs to be dynamically determined
+  USERNAME = 'root',
+  PASSWORD = 'passwd',
+  ORGANIZATION = 'jumpscale',
+  ROLES = {'csagent'},
+  GID = nil,          -- To be filled in later
+  WORKING_DIRECTORY = '/tmp/' .. 'csagent-' .. tostring(os.time()),
 }
 
 local function application_init()
@@ -38,8 +38,8 @@ end
 -- Raises an error on communication error.
 --
 local function register_node(agent_controller_session)
-    local result = agent_controller_session.registerNode{hostname = CONFIG.HOSTNAME, machineguid = CONFIG.MACHINE_GUID}
-    return result.node
+  local result = agent_controller_session.registerNode{hostname = CONFIG.HOSTNAME, machineguid = CONFIG.MACHINE_GUID}
+  return result.node
 end
 
 --
@@ -52,23 +52,23 @@ end
 --
 local function download_jumpscripts(agent_controller_session)
 
-    local jumpscripts_tar_b64 = agent_controller_session.getJumpscripts{bz2_compressed=false, types={'luajumpscripts'}}  -- TAR content in Base64
+  local jumpscripts_tar_b64 = agent_controller_session.getJumpscripts{bz2_compressed=false, types={'luajumpscripts'}}  -- TAR content in Base64
 
-    log('Received ' .. tostring(#jumpscripts_tar_b64) .. ' bytes of jumpscript base64 tar goodness', log.DEBUG)
+  log('Received ' .. tostring(#jumpscripts_tar_b64) .. ' bytes of jumpscript base64 tar goodness', log.DEBUG)
 
-    local jumpscripts_tar = basexx.from_base64(jumpscripts_tar_b64)
+  local jumpscripts_tar = basexx.from_base64(jumpscripts_tar_b64)
 
-    -- Create the local path where the jumpscript files will be stored.
-    local jumpscripts_tar_path = CONFIG.WORKING_DIRECTORY .. '/jumpscripts.tar'
-    local fp = io.open(jumpscripts_tar_path, 'wb')
-    assert(fp)
-    fp:write(jumpscripts_tar)
-    fp:close()
+  -- Create the local path where the jumpscript files will be stored.
+  local jumpscripts_tar_path = CONFIG.WORKING_DIRECTORY .. '/jumpscripts.tar'
+  local fp = io.open(jumpscripts_tar_path, 'wb')
+  assert(fp)
+  fp:write(jumpscripts_tar)
+  fp:close()
 
-    local jumpscripts_path = CONFIG.WORKING_DIRECTORY .. '/jumpscripts/'
-    tar.untar(jumpscripts_tar_path, jumpscripts_path)
+  local jumpscripts_path = CONFIG.WORKING_DIRECTORY .. '/jumpscripts/'
+  tar.untar(jumpscripts_tar_path, jumpscripts_path)
 
-    return jumpscripts_path
+  return jumpscripts_path
 end
 
 --
@@ -80,36 +80,36 @@ end
 --
 local function poll_for_work(agent_controller_session, jumpscripts_path)
 
-    local internal_commands = {
-        stop = function() os.exit(0) end,
-        reloadjumpscripts = function() return download_jumpscripts(agent_controller_session) end,
-    }
+  local internal_commands = {
+      stop = function() os.exit(0) end,
+      reloadjumpscripts = function() return download_jumpscripts(agent_controller_session) end,
+  }
 
-    while true do
+  while true do
 
-        log 'Polling for work..'
-        local job_description = agent_controller_session.getWork()
+     log 'Polling for work..'
+     local job_description = agent_controller_session.getWork()
 
-        if job_description then     -- Why does the client unblock with a nil response? TCP timed out?
+     if job_description then     -- Why does the client unblock with a nil response? TCP timed out?
 
-            local job = jobs.interpret(job_description, internal_commands, jumpscripts_path)
+         local job = jobs.interpret(job_description, internal_commands, jumpscripts_path)
 
-            local execution_success, execution_result = xpcall(job, debug.traceback)
+          local execution_success, execution_result = xpcall(job, debug.traceback)
 
-            if execution_success then
-                -- Execution OK
-                job_description.state = 'OK'
-            else
-                -- Execution failed
-                job_description.state = 'ERROR'
-            end
-            job_description.result = execution_result   -- Success result or error message
+          if execution_success then
+              -- Execution OK
+              job_description.state = 'OK'
+          else
+              -- Execution failed
+              job_description.state = 'ERROR'
+          end
+          job_description.result = execution_result   -- Success result or error message
 
-            -- Execute the work
+          -- Execute the work
 
-            agent_controller_session.notifyWorkCompleted{job = job_description}
-        end
-    end
+          agent_controller_session.notifyWorkCompleted{job = job_description}
+      end
+  end
 end
 
 --
@@ -153,15 +153,15 @@ end
 
 local function robust_main()
 
-    local function on_error(err)
-        log(err .. ' Resetting the application in 5 seconds...', FATAL)
-        utils.sleep(5)
-        print '--------------------------------------------------------------------'
-        return robust_main()
-    end
+  local function on_error(err)
+    log(err .. ' Resetting the application in 5 seconds...', FATAL)
+    utils.sleep(5)
+    print '--------------------------------------------------------------------'
+    return robust_main()
+  end
 
-    local success, err = pcall(main)
-    if not success then return on_error(err) end
+  local success, err = pcall(main)
+  if not success then return on_error(err) end
 end
 
 -- Execute robust_main() as the application entry point
