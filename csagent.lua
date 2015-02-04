@@ -6,6 +6,7 @@ local basexx = require 'basexx'
 local jobs = require 'jobs'
 local log = require 'log'
 local utils = require 'utils'
+local args = require 'args'
 
 -- CS Agent Configuration parameters
 local CONFIG = {
@@ -16,16 +17,15 @@ local CONFIG = {
     PASSWORD = 'passwd',
     ORGANIZATION = 'jumpscale',
     ROLES = {'csagent'},
-    GID = 0,
-    NID = 5,
+    GID = nil,          -- To be filled in later
     WORKING_DIRECTORY = '/tmp/' .. 'csagent-' .. tostring(os.time()),
 }
 
 local function application_init()
 
-    -- Create working directory
-    lfs.mkdir(CONFIG.WORKING_DIRECTORY)
-    log('Working directory is ' .. CONFIG.WORKING_DIRECTORY, log.DEBUG)
+  -- Create working directory
+  lfs.mkdir(CONFIG.WORKING_DIRECTORY)
+  log('Working directory is ' .. CONFIG.WORKING_DIRECTORY, log.DEBUG)
 
 end
 
@@ -119,6 +119,10 @@ end
 --
 function main()
 
+  -- Get GID from CLI args
+  local cli_args = args.parse(arg)
+  CONFIG.GID = cli_args.gid
+
     local agentcontroller = require('agentcontroller')
 
     log 'Initiating a communication session with Agent Controller'
@@ -126,7 +130,6 @@ function main()
         CONFIG.AGENT_CONTROLLER_JSONRPC_URL,
         CONFIG.ROLES,
         CONFIG.GID,
-        CONFIG.NID,
         CONFIG.PASSWORD,
         CONFIG.USERNAME,
         CONFIG.ORGANIZATION
@@ -135,8 +138,8 @@ function main()
     log 'Initiating application logic'
     application_init()
 
-    register_node(ac_session)
-    log 'Session registered on AgentController successfully'
+    local node = register_node(ac_session)
+    log('Session registered on AgentController successfully with Node ID: ' .. node.id)
 
     log 'Downloading the jumpscripts from AgentController...'
     local jumpscripts_path = download_jumpscripts(ac_session)

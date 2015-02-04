@@ -17,7 +17,6 @@ local agentcontroller = {}
 --   url: the url to JSON-RPC endpoint for the Agent Controller
 --   roles: an array of node roles
 --   gid:
---   nid:
 --   username:
 --   password:
 --   organization:
@@ -27,15 +26,19 @@ local agentcontroller = {}
 --
 -- Raises an error on communication error.
 --
-function agentcontroller.connect_to(url, roles, gid, nid, password, username, organization)
+function agentcontroller.connect_to(url, roles, gid, password, username, organization)
+
+  assert(url)
+  assert(roles)
+  assert(gid)
 
     local url = url or 'http://localhost:4444'
 
     local function init_session()
+        print('THE GID IS ' .. gid)
         local session_data = {
             roles = roles,
             gid = gid,
-            nid = nid,
             encrkey = '',
             start = os.time(),
             netinfo = netinfo(),
