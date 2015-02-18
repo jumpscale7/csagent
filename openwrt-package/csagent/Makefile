@@ -8,11 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=csagent
-#PKG_SOURCE_VERSION:=8ff3647efbbbe65188fb87b8c09d87f62ed9a2ec
+PKG_SOURCE_VERSION:=8ff3647efbbbe65188fb87b8c09d87f62ed9a2ec
 PKG_VERSION:=1
-PKG_RELEASE:=1
-PKG_SOURCE:=archive.tar.gz
-PKG_SOURCE_URL:=https://git.aydo.com/binary/csagent/repository
+PKG_RELEASE:=5
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_RELEASE).tar.bz2
+PKG_SOURCE_URL:=https://git.aydo.com/binary/csagent.git
+PKG_SOURCE_SUBDIR:=csagent.git
+PKG_SOURCE_PROTO:=git
 
 include $(INCLUDE_DIR)/package.mk
 
