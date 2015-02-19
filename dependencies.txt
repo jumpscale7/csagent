@@ -3,5 +3,5 @@ uuid
 lunix
 basexx
 luafilesystem
-luarocks
+luarocks : https://github.com/keplerproject/luarocks : 48847a41fb3b3a14e59282f988df87c076d80a82
 penlight
