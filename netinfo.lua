@@ -18,8 +18,10 @@ local function retrieve_netinfo ()
 
     local function mac_address_for_interface(interface_name)
         assert(interface_name)
-        local fp = io.open('/sys/class/net/' .. interface_name .. '/address')
-        assert(fp)
+        local fp, err = io.open('/sys/class/net/' .. interface_name .. '/address')
+        if err then
+          error(err)
+        end
         local address = fp:read()
         fp:close()
         return address
