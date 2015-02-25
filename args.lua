@@ -2,27 +2,45 @@
 -- The parsing of CLI arguments.
 --
 
-args = {}
+local args = {}
+
+require('pl.stringx').import()
 
 --
 -- Parses the given table of system-provided CLI arguments and returns a table with that useful
--- information if they were correctly provided.
+-- information if they were correctly provided, and an error if any.
 --
--- Exits with a helpful error message if the arguments are insufficient or incorrect.
+-- Returns: {
+--    gid = ...,
+--    agentcontroller_jsonrpc_url = ...,
+--    roles = ...,
+-- }, err
 --
-function args.parse(arg)
+--
+function args.parse(arg, silent_error)
 
-  local data = {}
+  package.loaded['cliargs'] = nil
+  local cli = require 'cliargs'
 
-  data.gid = tonumber(arg[1])
+  cli:set_name('csagent')
 
-  if not data.gid then
-    print('Insufficient or incorrect arguments are passed.')
-    print('Usage: ' .. arg[0] .. ' GID')
-    os.exit(1)
+  cli:add_argument('GID', 'ID of your grid')
+
+  cli:add_option('-c AGENTCONTROLLER_JSONRPC_URL', 'the JSONRPC URL to AgentController', 'http://localhost:4444')
+
+  cli:add_option('-r ROLES_CSV', 'comma-separated list of roles', 'csagent')
+
+  local parsed, err = cli:parse(arg, silent_error)
+
+  if err then
+    return _, err
   end
 
-  return data
+  return {
+    gid = tonumber(parsed.GID),
+    agentcontroller_jsonrpc_url = parsed.c,
+    roles = parsed.r:split(',')
+  }
 end
 
 return args

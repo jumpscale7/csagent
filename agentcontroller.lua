@@ -16,9 +16,8 @@ local agentcontroller = {}
 -- Args:
 --   url: the url to JSON-RPC endpoint for the Agent Controller
 --   roles: an array of node roles
---   gid:
---   username:
---   password:
+--   gid: the grid ID
+--   machine_guid: this machine's unique GUID
 --   organization:
 --
 -- Returns:
@@ -26,36 +25,34 @@ local agentcontroller = {}
 --
 -- Raises an error on communication error.
 --
-function agentcontroller.connect_to(url, roles, gid, password, username, organization)
+function agentcontroller.connect_to(url, roles, gid, machine_guid, organization)
 
   assert(url)
   assert(roles)
+  assert(machine_guid)
   assert(gid)
 
-    local url = url or 'http://localhost:4444'
+  local function init_session()
+    local session_data = {
+        roles = roles,
+        gid = gid,
+        encrkey = '',
+        start = os.time(),
+        netinfo = netinfo(),
+        user = 'node',
+        passwd = machine_guid,
+        organization = organization,
+        id = uuid(),
+    }
 
-    local function init_session()
-        print('THE GID IS ' .. gid)
-        local session_data = {
-            roles = roles,
-            gid = gid,
-            encrkey = '',
-            start = os.time(),
-            netinfo = netinfo(),
-            user = username,
-            passwd = password,
-            organization = organization,
-            id = uuid(),
-        }
+    local _, err =
+    json.rpc.call(url, 'core.registersession', {sessiondata = session_data, ssl=false, session=false})
 
-        local result, err =
-        json.rpc.call(url, 'core.registersession', {sessiondata = session_data, ssl=false, session=false})
+    if err then error(err) else return session_data.id end
+  end
 
-        if err then error(err) else return session_data.id end
-    end
-
-    local session_id = init_session()
-    return agentcontroller.AgentController:new(url, session_id)
+  local session_id = init_session()
+  return agentcontroller.AgentController:new(url, session_id)
 end
 
 agentcontroller.AgentController = {}
