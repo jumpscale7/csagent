@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/Jumpscale/csagent.svg?branch=master)](https://travis-ci.org/Jumpscale/csagent)
-
 # CSAgent #
 A JumpScale Agent for the JumpScale7 platform, written in Lua.
 
