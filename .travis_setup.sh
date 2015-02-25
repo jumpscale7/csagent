@@ -13,3 +13,5 @@ git clone -b rel-20140819 https://github.com/wahern/lunix.git
 cd lunix
 sudo make all5.1 prefix=/usr/
 sudo make install5.1 prefix=/usr/
+
+# TODO: parse dependencies.txt and install via luarocks
