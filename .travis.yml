@@ -1,16 +1,17 @@
 language: erlang
 
 env:
-  - LUA=""
-  - LUA="luajit"
+  - LUA='Lua 5.1'
+  - LUA='Lua 5.2'
+
+before_install:
+  - bash .travis_setup.sh
 
 branches:
   only:
     - master
 
 install:
-  - sudo apt-get install luajit
-  - sudo apt-get install luarocks
   - sudo luarocks install busted
 
 script: "busted spec"
