@@ -1,9 +1,5 @@
 language: erlang
 
-env:
-  - LUA='Lua 5.1'
-  - LUA='Lua 5.2'
-
 before_install:
   - bash .travis_setup.sh
 
