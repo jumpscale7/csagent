@@ -1,6 +1,6 @@
 source,name,version,project_url
 luarocks,json4lua,0.9.53,https://github.com/amrhassan/json4lua
-luarocks,uuid,0.2.0,https://github.com/Tieske/uuid
+luarocks,uuid,0.2,https://github.com/Tieske/uuid
 ,lunix,20140819,https://github.com/wahern/lunix 
 luarocks,basexx,0.1.0,https://github.com/aiq/basexx
 luarocks,luafilesystem,1.6.2,https://github.com/keplerproject/luafilesystem
