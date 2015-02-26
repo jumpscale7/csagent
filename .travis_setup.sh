@@ -16,7 +16,7 @@ sudo make install5.1 prefix=/usr/
 
 
 # Get the dependencies list and install those marked with a luarocks source using luarocks
-for dep in `curl https://raw.githubusercontent.com/Jumpscale/csagent/master/dependencies.txt | sed -e1d `; do
+for dep in `cat dependencies.txt | sed -e1d `; do
   pkg_name=`echo $dep | cut -d, -f2`
   source=`echo $dep | cut -d, -f1`
   pkg_version=`echo $dep | cut -d, -f3`
