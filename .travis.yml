@@ -3,10 +3,6 @@ language: erlang
 before_install:
   - bash .travis_setup.sh
 
-branches:
-  only:
-    - master
-
 install:
   - sudo luarocks install busted
 
