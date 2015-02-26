@@ -1,5 +1,7 @@
 
-local unix = require('unix')
+local unix = require 'unix'
+local utils = require 'utils'
+
 M = {}
 
 --
@@ -18,7 +20,9 @@ local function retrieve_netinfo ()
 
     local function mac_address_for_interface(interface_name)
         assert(interface_name)
-        local fp, err = io.open('/sys/class/net/' .. interface_name .. '/address')
+        local mac_address_fp = '/sys/class/net/' .. interface_name .. '/address'
+        assert(utils.file_exists(mac_address_fp))
+        local fp, err = io.open(mac_address_fp)
         if err then
           error(err)
         end
@@ -27,16 +31,23 @@ local function retrieve_netinfo ()
         return address
     end
 
+    local function interface_has_mac_address(interface_name)
+      assert(interface_name)
+      local mac_address_fp = '/sys/class/net/' .. interface_name .. '/address'
+      return utils.file_exists(mac_address_fp)
+    end
+
+    local AF_INET = 2     -- IPv4 address family
+
     local info = {}
     for net_device in unix.getifaddrs() do
-        if net_device.addr and net_device.family == 2 then   -- A device listing with an IP address
+        if net_device.addr and net_device.family == AF_INET and interface_has_mac_address(net_device.name) then
             local record = {
                 name = net_device.name,
                 ip = net_device.addr,
                 cidr = net_device.prefixlen,
                 mac = mac_address_for_interface(net_device.name),
             }
-
             table.insert(info, record)
         end
     end
