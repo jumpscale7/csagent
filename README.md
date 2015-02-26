@@ -5,16 +5,21 @@ A JumpScale Agent for the JumpScale7 platform, written in Lua.
 
 More information about the concepts behind the project is available on the [project wiki](https://github.com/Jumpscale/csagent/wiki).
 
-## Installation and running ##
-Manageable via the the jpackage system:
+## Installation and execution ##
+
+### In a JumpScale environment ###
 ```bash
 jpackage install -n csagent GID
 ```
 
-Where `GID` is the designated numerical ID of your Grid.
-
-## Manual Execution ##
-Having fulfilled the execution dependencies, CSAgent is started from the [`csagent.lua`](https://github.com/Jumpscale/csagent/blob/master/csagent.lua) script and its execution logic can be followed from there and onwards in a fairly straightforward and well-documented manner.
+### In OpenWRT ###
+After adding the [JumpScale OpenWRT package feed](https://github.com/Jumpscale/openwrt-packages) to your [buildroot](http://wiki.openwrt.org/doc/howto/build):
+```bash
+./script/feeds update jumpscale
+./scipt/feeds install csagent
+```
+In your OpenWRT image, the `csagent` service should be enabled by default. You can edit its configuration
+parameters in `/etc/config/csagent` then hit `/etc/init.d/csagent reload` to apply your changes.
 
 ## Testing it out ##
 You can test it out by sending the CSAgent something to do using `jsac` (after replacing GID with your Grid ID):
