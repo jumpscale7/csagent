@@ -6,4 +6,4 @@ before_install:
 install:
   - sudo luarocks install busted
 
-script: "busted spec"
+script: "sudo busted spec"
