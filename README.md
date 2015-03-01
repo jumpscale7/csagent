@@ -17,6 +17,7 @@ After adding the [JumpScale OpenWRT package feed](https://github.com/Jumpscale/o
 ```bash
 ./script/feeds update jumpscale
 ./scipt/feeds install csagent
+make menuconfig     # And include JumpScale/CSAgent
 ```
 In your OpenWRT image, the `csagent` service should be enabled by default. You can edit its configuration
 parameters in `/etc/config/csagent` then hit `/etc/init.d/csagent reload` to apply your changes.
