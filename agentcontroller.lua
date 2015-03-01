@@ -6,9 +6,10 @@ local json = require('json')
 require 'json.rpc'
 local socket = require 'socket'
 local uuid = require 'uuid'; uuid.seed() -- Must be seeded somewhere after require('socket')
-local netinfo = require('netinfo')
+local netinfo = require 'netinfo'
 
 local agentcontroller = {}
+
 
 --
 -- Constructs a client for an Agent Controller and returns it.
@@ -32,13 +33,30 @@ function agentcontroller.connect_to(url, roles, gid, machine_guid, organization)
   assert(machine_guid)
   assert(gid)
 
+  -- Returns the network information packed as Agent Controller is expecting it to be.
+  -- Note: only network interfaces with assigned IPv4 addresses are reported.
+  local function network_information()
+    local info = {}
+    for _, interface_name in pairs(netinfo.interfaces()) do
+      if netinfo.mac_address(interface_name) and netinfo.ip4_address(interface_name) then
+        table.insert(info, {
+          name = interface_name,
+          ip = netinfo.ip4_address(interface_name),
+          cidr = netinfo.ip4_network_prefix_length(interface_name),
+          mac = netinfo.mac_address(interface_name)
+        })
+      end
+    end
+    return info
+  end
+
   local function init_session()
     local session_data = {
         roles = roles,
         gid = gid,
         encrkey = '',
         start = os.time(),
-        netinfo = netinfo(),
+        netinfo = network_information(),
         user = 'node',
         passwd = machine_guid,
         organization = organization,
