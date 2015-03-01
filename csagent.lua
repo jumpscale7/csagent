@@ -7,12 +7,13 @@ local jobs = require 'jobs'
 local log = require 'log'
 local utils = require 'utils'
 local args = require 'args'
+local machineguid = require 'machineguid'
 
 -- CS Agent Configuration parameters
 local CONFIG = {
   AGENT_CONTROLLER_JSONRPC_URL = nil,      -- To be filled in later
   HOSTNAME = socket.dns.gethostname(),
-  MACHINE_GUID = '080027534560183b86',     -- TODO: Needs to be dynamically determined
+  MACHINE_GUID = machineguid(),
   ORGANIZATION = 'jumpscale',
   ROLES = nil,        -- To be filled in later
   GID = nil,          -- To be filled in later
