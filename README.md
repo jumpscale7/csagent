@@ -9,7 +9,7 @@ More information about the concepts behind the project is available on the [proj
 
 ### In a JumpScale environment ###
 ```bash
-jpackage install -n csagent GID
+jpackage install -n csagent
 ```
 
 ### In OpenWRT ###
